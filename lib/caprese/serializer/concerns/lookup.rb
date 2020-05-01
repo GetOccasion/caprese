@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/concern'
 
 module Caprese
@@ -14,7 +16,9 @@ module Caprese
         # @param [Hash] options options to use when getting the serializer
         # @return [Serializer,Nil] the serializer for the given record
         def serializer_for(record, options = {})
-          return ActiveModel::Serializer::CollectionSerializer if record.respond_to?(:to_ary)
+          if record.respond_to?(:to_ary)
+            return ActiveModel::Serializer::CollectionSerializer
+          end
 
           if valid_for_serialization(record)
             options.fetch(:serializer) { get_serializer_for(record.class) }
@@ -29,7 +33,7 @@ module Caprese
         # @return [True] this method either returns true, or fails - breaking control flow
         def valid_for_serialization(record)
           if record && !record.class.included_modules.include?(Caprese::Record)
-            fail 'All models managed by Caprese must include Caprese::Record'
+            raise 'All models managed by Caprese must include Caprese::Record'
           end
 
           true
@@ -55,10 +59,12 @@ module Caprese
         # @param [Class,String] klass the klass or klass name to get the serializer for
         # @return [Serializer] the serializer for the class
         def get_serializer_for(klass)
-          begin
-            namespaced_module("#{klass.is_a?(Class) ? klass.name : klass}Serializer").constantize
-          rescue NameError
-            get_serializer_for(klass.superclass) if klass.is_a?(Class) && klass.superclass
+          namespaced_module("#{klass.is_a?(Class) ? klass.name : klass}Serializer").constantize
+        rescue NameError => e
+          if e.instance_of?(NameError) && klass.is_a?(Class) && klass.superclass
+            get_serializer_for(klass.superclass)
+          else
+            raise
           end
         end
 
@@ -69,7 +75,7 @@ module Caprese
         # @return [String] the route for the class
         def get_route_for(klass)
           output = nil
-          while klass.superclass do
+          while klass.superclass
             if url_helpers.respond_to?(url = version_name("#{unnamespace(klass.name).underscore}_url"))
               output = url
               break

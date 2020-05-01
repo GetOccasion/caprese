@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/concern'
 require 'caprese/adapter/json_api'
 require 'caprese/serializer'
@@ -60,7 +62,9 @@ module Caprese
     # @param [ActiveRecord::Base] record the record to find a serializer for
     # @return [Serializer,Nil] the serializer for the given record
     def serializer_for(record)
-      get_serializer_for(record.class) if Serializer.valid_for_serialization(record)
+      if Serializer.valid_for_serialization(record)
+        get_serializer_for(record.class)
+      end
     end
 
     # Gets a serializer for a klass, either as the serializer explicitly defined
@@ -69,11 +73,9 @@ module Caprese
     # @param [Class] klass the klass to get the serializer for
     # @return [Serializer] the serializer for the class
     def get_serializer_for(klass)
-      begin
-        namespaced_module("#{klass.name}Serializer").constantize
-      rescue NameError => e
-        get_serializer_for(klass.superclass) if klass.superclass
-      end
+      namespaced_module("#{klass.name}Serializer").constantize
+    rescue NameError => e
+      get_serializer_for(klass.superclass) if klass.superclass
     end
   end
 end

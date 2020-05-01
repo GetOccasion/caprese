@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/concern'
 
 module Caprese
@@ -13,10 +15,12 @@ module Caprese
     #  this namespace's module space
     # @return [String] the namespaced modulized name of the suffix passed in
     def namespaced_module(suffix = nil)
-      mod = (self.is_a?(Class) ? self : self.class).name.deconstantize
+      mod = (is_a?(Class) ? self : self.class).name.deconstantize
 
       name = suffix || mod
-      name = name.prepend("#{mod}::") unless suffix.nil? || (/^#{mod}::\.*/).match(suffix)
+      unless suffix.nil? || /^#{mod}::\.*/.match(suffix)
+        name = "#{mod}::#{name}"
+      end
 
       name
     end
@@ -63,10 +67,10 @@ module Caprese
     # @return [String] the stripped, unnamespaced name of the string passed in
     def unnamespace(str)
       str
-      .remove(namespaced_module(''))
-      .remove(namespaced_path(''))
-      .remove(namespaced_name(''))
-      .remove(namespaced_dot_path(''))
+        .remove(namespaced_module(''))
+        .remove(namespaced_path(''))
+        .remove(namespaced_name(''))
+        .remove(namespaced_dot_path(''))
     end
 
     # Get versioned module name of object (class)
@@ -82,7 +86,9 @@ module Caprese
     def version_module(suffix = nil)
       name = namespaced_module(suffix)
 
-      name = name.gsub("#{Caprese.config.isolated_namespace}::", '') if Caprese.config.isolated_namespace
+      if Caprese.config.isolated_namespace
+        name = name.gsub("#{Caprese.config.isolated_namespace}::", '')
+      end
 
       name
     end
@@ -131,10 +137,10 @@ module Caprese
     # @return [String] the stripped, unversioned name of the string passed in
     def unversion(str)
       str
-      .remove(version_module(''))
-      .remove(version_path(''))
-      .remove(version_name(''))
-      .remove(version_dot_path(''))
+        .remove(version_module(''))
+        .remove(version_path(''))
+        .remove(version_name(''))
+        .remove(version_dot_path(''))
     end
   end
 end
