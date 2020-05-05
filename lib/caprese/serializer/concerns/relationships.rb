@@ -121,7 +121,9 @@ module Caprese
         # @param [Hash] options options to add default serializer to
         # @return [Hash] the default options
         def merge_serializer_option(name, options)
-          { serializer: get_serializer_for(name.to_s.classify) }.merge(options)
+          if options[:serializer] ||= get_serializer_for(name.to_s.classify)
+          end
+          options
         end
       end
     end
