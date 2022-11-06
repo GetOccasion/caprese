@@ -62,6 +62,7 @@ module Caprese
       #
       # @param [Class] subclass the child class that is to inherit the callbacks
       def inherited(subclass)
+        super
         CALLBACKS.each do |method_name|
           instance_variable_name = "@#{method_name}_callbacks"
           subclass.instance_variable_set(instance_variable_name, instance_variable_get(instance_variable_name))
