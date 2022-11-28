@@ -473,6 +473,7 @@ module Caprese
       #   }.reject! {|_,v| v.nil? }
       def links_for(serializer)
         serializer._links.each_with_object({}) do |(name, value), hash|
+          value = value.block if value.respond_to? :block
           result = Link.new(serializer, value).as_json
           hash[name] = result if result
         end
