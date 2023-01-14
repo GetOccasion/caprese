@@ -34,7 +34,7 @@ module Caprese
           raise exception, e.full_message
         end
 
-        self[attribute] << e
+        add(attribute, e)
       end
 
       # @return [Boolean] true if the model has no errors
